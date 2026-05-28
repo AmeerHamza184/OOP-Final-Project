@@ -1,14 +1,3 @@
-"""
-working.py -- OOP Final Term Project
-Custom Extension of the requests library
-
-Group Members:
-  Ameer Hamza        -- F25BDATS1M02077
-  Humayon Zahid      -- F25BDATS1M02064
-  Fahad Iqbal        -- S25BDATS1E01001
-  Rehman Ali Chattha -- F25BDATS1M02068
-"""
-
 import requests
 import time
 
