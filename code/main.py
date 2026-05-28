@@ -1,56 +1,95 @@
+"""
+working.py -- OOP Final Term Project
+Custom Extension of the requests library
+
+Group Members:
+  Ameer Hamza        -- F25BDATS1M02077
+  Humayon Zahid      -- F25BDATS1M02064
+  Fahad Iqbal        -- S25BDATS1E01001
+  Rehman Ali Chattha -- F25BDATS1M02068
+"""
+
 import requests
 import time
 
-# 1. INHERITANCE: We are inheriting from the core 'Session' class of requests library
-class CustomLoggingSession(requests.Session):
+# 1. INHERITANCE -- LoggedSession extends requests.Session
+class LoggedSession(requests.Session):
     """
-    A custom extension of requests.Session that automatically logs 
-    the execution time and status code of every HTTP request.
-    This demonstrates the OOP principles of Inheritance and Method Overriding.
+    Custom extension of requests.Session.
+    Adds automatic logging AND execution time tracking.
+    Demonstrates all 4 OOP principles.
     """
-    
-    def __init__(self, *args, **kwargs):
-        # Calling the parent class constructor using super()
-        super().__init__(*args, **kwargs)
-        print("[INIT] CustomLoggingSession initialized successfully.")
 
-    # 2. METHOD OVERRIDING: Overriding the parent class 'send' method
-    def send(self, request, **kwargs):
-        """
-        Overrides the standard send() method to inject custom logging functionality.
-        """
-        print(f"\n[SENDING] Request to URL: {request.url} | Method: {request.method}")
-        
-        # Recording start time to measure performance
-        start_time = time.time()
-        
-        # Calling the original send method of the parent class (Polymorphism & Reusability)
-        response = super().send(request, **kwargs)
-        
-        # Calculating total elapsed time
-        elapsed_time = time.time() - start_time
-        
-        print(f"[RESPONSE] Status Code: {response.status_code} | Taken: {elapsed_time:.4f} seconds")
+    def __init__(self):
+        super().__init__()           # Inheritance -- parent init
+        self._log = []               # Encapsulation -- private attribute
+        print("[INIT] LoggedSession ready.")
+
+    # 2. POLYMORPHISM -- override request() method
+    def request(self, method, url, **kwargs):
+        """Override to add logging + execution time tracking."""
+        print(f"\n[LOG] {method.upper()} -> {url}")
+        start = time.time()
+        response = super().request(method, url, **kwargs)
+        elapsed = time.time() - start
+
+        # 3. ENCAPSULATION -- stored privately in _log
+        self._log.append({
+            "method"  : method.upper(),
+            "url"     : url,
+            "status"  : response.status_code,
+            "time_sec": round(elapsed, 4),
+            "ok"      : response.ok
+        })
+        print(f"[DONE] Status: {response.status_code} | Time: {elapsed:.4f}s")
         return response
 
-# 3. DEMO BLOCK: Showing the custom extension in action (Required by Rubric)
+    def get_log(self):              # Getter -- Encapsulation
+        """Return a copy of the private log."""
+        return self._log.copy()
+
+    def show_log(self):             # 4. ABSTRACTION -- hides internal detail
+        """Print all requests in a readable table format."""
+        print("\n" + "="*60)
+        print(f"{'#':<4}{'METHOD':<8}{'STATUS':<8}{'TIME(s)':<10}URL")
+        print("="*60)
+        for i, e in enumerate(self._log, 1):
+            mark = "OK" if e["ok"] else "FAIL"
+            print(f"{i:<4}{e['method']:<8}{str(e['status'])+' '+mark:<8}{e['time_sec']:<10}{e['url']}")
+        print("="*60)
+
+    def get_failed(self):           # Extra meaningful method
+        """Return only the failed requests (status >= 400)."""
+        return [e for e in self._log if not e["ok"]]
+
+    def summary(self):              # Extra meaningful method
+        """Print a quick summary of total, success, and failed."""
+        total = len(self._log)
+        ok    = sum(1 for e in self._log if e["ok"])
+        print(f"\nSummary: {ok}/{total} successful | {total-ok} failed")
+
+    def clear_log(self):
+        """Clear all stored log entries."""
+        self._log = []
+
+
+# DEMO BLOCK -- Required by Rubric
 if __name__ == "__main__":
-    print("--- Testing Custom Extension for OOP Final Project ---")
-    
-    # Instantiating the custom subclass object
-    with CustomLoggingSession() as session:
+    print("--- OOP Final Project -- Custom Extension Demo ---")
+
+    with LoggedSession() as session:
         try:
-            # Using a real-world public mock API that returns sample user/todo data
-            # This simulates fetching real data from a production server
-            url = "https://jsonplaceholder.typicode.com/todos/1"
-            response = session.get(url)
-            
-            # Checking JSON decoding to prove the session works normally
-            todo_data = response.json()
-            print("\n--- Fetched Real-World API Response Data ---")
-            print(f"Todo Title: {todo_data.get('title')}")
-            print(f"Completed Status: {todo_data.get('completed')}")
-            print("--------------------------------------------")
-            
+            session.get("https://jsonplaceholder.typicode.com/todos/1")
+            session.post("https://jsonplaceholder.typicode.com/posts")
+            session.get("https://httpbin.org/status/404")
+
+            session.show_log()
+
+            print("\nFailed Requests:")
+            for r in session.get_failed():
+                print(f"  {r['method']} {r['url']} -> Status {r['status']}")
+
+            session.summary()
+
         except Exception as e:
             print(f"[ERROR] Request failed: {e}")
