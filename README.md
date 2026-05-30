@@ -35,3 +35,18 @@ Our custom implementation bridges the gap between raw library behaviors and cust
 * **Polymorphism:** We override the standard central `send()` method. By utilizing method overriding, our custom session intercepts network requests transparently to inject our timing wrappers while keeping the original method contract intact.
 * **Encapsulation:** The latency and execution logging operations are entirely enclosed within the overridden method scope. The application handles complex calculations internally without exposing internal state attributes to outside callers.
 * **Abstraction:** The underlying structural complexity—such as creating a `PreparedRequest`, socket connections, and managing stream timeouts—is hidden behind simple interfaces like `session.get()`, reducing cognitive load for the developer.
+
+---
+
+## 4. Custom Extension Implementation
+The source code located in the main directory serves as a practical demonstration of automated API latency monitoring.
+
+### Key Features Implemented:
+* **Performance Tracking:** Measures real-time connection latency and execution timers for every request.
+* **Transparent Wrappers:** Works as a drop-in replacement for standard sessions without modifying client-side HTTP call methods.
+* **Clean Interface:** Human-readable terminal reporting engine for rapid API tracking and monitoring.
+
+### Quick Start / Demo Execution
+To execute the working demonstration and verify the custom extension execution logs locally, run the main script:
+```bash
+python main.py
